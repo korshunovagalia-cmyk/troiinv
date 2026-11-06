@@ -37,7 +37,7 @@
   #track { width: 1px; }
 
   .layer { position: absolute; inset: 0; will-change: opacity, clip-path, transform; }
-  canvas.seq { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  canvas.seq { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
 
   /* --- Scene 1: envelope --- */
   .hint {
@@ -225,12 +225,16 @@
     });
     function size() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(canvas.clientWidth * dpr);
-      canvas.height = Math.round(canvas.clientHeight * dpr);
+      const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+      if (!w || !h || (w === canvas.width && h === canvas.height)) return;
+      canvas.width = w; canvas.height = h;   // keeps the canvas pixels matching its on-screen shape
       last = -1;
+      draw(lastIdx, true);
     }
+    let lastIdx = 0;
     function draw(idx, force) {
       idx = clamp(Math.round(idx), 0, count - 1);
+      lastIdx = idx;
       // fall back to the nearest loaded frame
       let im = imgs[idx], k = idx;
       while (k > 0 && !(im && im.complete && im.naturalWidth)) im = imgs[--k];
@@ -242,6 +246,8 @@
       const w = im.naturalWidth * s, h = im.naturalHeight * s;
       ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h);
     }
+    // Re-measure on any size change (e.g. mobile address bar showing/hiding)
+    if ('ResizeObserver' in window) new ResizeObserver(size).observe(canvas);
     return { size, draw, ready, count };
   }
 
