@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E5E0DC">
+<title>TROI Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@500;600;700&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --plum: #774779;
+    --plum-deep: #69365F;
+    --ink: #74437A;
+    --cream: #EEE7EA;
+    --beige: #E5E0DC;
+    --paper: #D8CDBE;
+    --max: 480px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #1a1418; }
+  body {
+    font-family: "Source Sans 3", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* The fixed stage: a phone-sized column. Scroll length is set by #track. */
+  .stage {
+    position: fixed; top: 0; bottom: 0; left: 50%;
+    width: 100%; max-width: var(--max);
+    transform: translateX(-50%);
+    overflow: hidden;
+    background: var(--paper);
+  }
+  #track { width: 1px; }
+
+  .layer { position: absolute; inset: 0; will-change: opacity, clip-path, transform; }
+  canvas.seq { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* --- Scene 1: envelope --- */
+  .hint {
+    position: absolute; left: 0; right: 0; bottom: max(28px, env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--plum-deep); font-weight: 600; font-size: 13px;
+    letter-spacing: .22em; text-transform: uppercase;
+  }
+  .hint .line {
+    width: 1px; height: 38px; background: currentColor; opacity: .5;
+    transform-origin: top; animation: drip 1.8s ease-in-out infinite;
+  }
+  @keyframes drip {
+    0% { transform: scaleY(0); opacity: 0; }
+    40% { transform: scaleY(1); opacity: .6; }
+    100% { transform: scaleY(1) translateY(16px); opacity: 0; }
+  }
+
+  /* --- Scene 2/3: purple --- */
+  .purple { background: var(--plum); clip-path: circle(0% at 50% 50%); }
+  .center {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 0 16px;
+  }
+  .join {
+    color: var(--cream); font-weight: 600;
+    font-size: clamp(26px, 7.4vw, 34px); line-height: 1.14;
+  }
+  .ch { display: inline-block; white-space: pre; opacity: 0; will-change: opacity, filter, transform; }
+
+  .date {
+    color: var(--cream); font-weight: 600;
+    font-size: clamp(64px, 19vw, 92px); line-height: 1.12;
+    font-variant-numeric: tabular-nums;
+    display: grid; gap: 0;
+  }
+  .date .row { display: flex; justify-content: center; }
+  .date .d { display: inline-block; width: .56em; text-align: center; will-change: transform, opacity; }
+  .date .sep { display: inline-block; width: .3em; text-align: center; opacity: 0; }
+
+  /* --- Scene 4: hanbok --- */
+  .hanbok { opacity: 0; background: #F4EFE6; }
+  .wash { position: absolute; inset: 0; background: #fbf8f3; pointer-events: none; }
+
+  /* --- Scene 5/6: beige --- */
+  .beige { background: var(--beige); opacity: 0; }
+  .clinic {
+    position: absolute; left: 0; right: 0; top: 41%;
+    transform: translateY(-50%);
+    text-align: center; color: var(--ink); padding: 0 16px;
+  }
+  .clinic h1 {
+    font-weight: 600; font-size: clamp(30px, 8.4vw, 38px); line-height: 1.08;
+  }
+  .clinic .label {
+    margin-top: 44px; font-weight: 600; font-size: clamp(22px, 6vw, 27px);
+  }
+  .clinic .addr {
+    margin: 6px auto 0; font-weight: 500; font-size: clamp(20px, 5.5vw, 25px);
+    line-height: 1.22;
+  }
+  .logo-wrap {
+    position: absolute; left: 0; right: 0; top: 47%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .logo { width: min(64%, 300px); }
+  .logo { position: relative; aspect-ratio: 2378 / 903; }
+  .logo img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  /* Same image twice: top half = "TROI" (wiped in), bottom = 트로이 (faded in) */
+  .logo-latin { clip-path: inset(0 100% 35% 0); }
+  .logo-kr { clip-path: inset(70% 0 0 0); opacity: 0; }
+  .tagline {
+    margin-top: 44px; color: var(--ink); font-weight: 600;
+    font-size: clamp(22px, 6.2vw, 28px);
+  }
+
+  .progress {
+    position: absolute; left: 0; top: 0; height: 2px; width: 100%;
+    background: var(--plum-deep); transform-origin: left; transform: scaleX(0);
+    opacity: .55; z-index: 10;
+  }
+
+  .loader {
+    position: absolute; inset: 0; z-index: 20; background: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--plum-deep); font-weight: 600; letter-spacing: .3em; font-size: 12px;
+    transition: opacity .6s ease;
+  }
+  .loader.done { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="progress" id="progress"></div>
+
+    <!-- Scene 1: wax-sealed envelope opens, card slides out -->
+    <div class="layer" id="envLayer">
+      <canvas class="seq" id="envCanvas"></canvas>
+      <div class="hint" id="hint"><span>Scroll to open</span><span class="line"></span></div>
+    </div>
+
+    <!-- Scene 2 + 3: purple — invitation line, then 11.11 / 11:11 -->
+    <div class="layer purple" id="purpleLayer">
+      <div class="center"><p class="join" id="join">Join us for opening|of exclusive beauty|experience.</p></div>
+      <div class="center" id="dateWrap">
+        <div class="date" aria-label="11.11 at 11:11">
+          <div class="row"><span class="d">1</span><span class="d">1</span><span class="sep">.</span><span class="d">1</span><span class="d">1</span></div>
+          <div class="row"><span class="d">1</span><span class="d">1</span><span class="sep">:</span><span class="d">1</span><span class="d">1</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scene 4: hanbok -->
+    <div class="layer hanbok" id="hanbokLayer">
+      <canvas class="seq" id="hanbokCanvas"></canvas>
+      <div class="wash" id="wash"></div>
+    </div>
+
+    <!-- Scene 5 + 6: clinic, location, logo -->
+    <div class="layer beige" id="beigeLayer">
+      <div class="clinic" id="clinic">
+        <h1 id="headline">Authentic Korean|Skincare Clinic</h1>
+        <p class="label" id="locLabel">Location:</p>
+        <p class="addr" id="addr">TROI Skin Clinic, Shop 1|Azizi Fawad, Al Jaddaf,|Dubai</p>
+      </div>
+      <div class="logo-wrap" id="logoWrap">
+        <div class="logo" role="img" aria-label="TROI 트로이">
+          <img src="images/logo.png" alt="" class="logo-latin" id="logoLatin">
+          <img src="images/logo.png" alt="" class="logo-kr" id="kr">
+        </div>
+        <p class="tagline" id="tagline">A soul from Seoul</p>
+      </div>
+    </div>
+
+    <div class="loader" id="loader">TROI</div>
+  </div>
+  <div id="track"></div>
+
+<script>
+(() => {
+  const ENV_FRAMES = 70, HANBOK_FRAMES = 32;
+  const pad = n => String(n).padStart(3, '0');
+  const $ = id => document.getElementById(id);
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const seg = (p, a, b) => clamp((p - a) / (b - a));
+  const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+  // Timeline in "screens" (1 = one viewport height of scrolling).
+  const T = {
+    envScrub: [0.05, 3.2],
+    toPurple: [3.45, 4.0],
+    join:     [4.1, 5.6],
+    joinOut:  [6.0, 6.35],
+    digitsIn: [6.35, 6.8],
+    converge: [6.9, 7.8],
+    toHanbok: [8.3, 8.75],
+    hanbok:   [8.6, 10.9],
+    toBeige:  [11.3, 11.65],
+    headline: [11.7, 12.2],
+    label:    [12.35, 12.6],
+    addr:     [12.6, 13.8],
+    clinicOut:[14.3, 14.65],
+    logoDraw: [14.65, 15.6],
+    kr:       [15.4, 15.75],
+    tagline:  [15.8, 16.6],
+    end:      17.2
+  };
+
+  // ---------- Image sequences ----------
+  function makeSeq(canvas, dir, count) {
+    const ctx = canvas.getContext('2d');
+    const imgs = new Array(count);
+    let loaded = 0, last = -1;
+    const ready = new Promise(res => {
+      for (let i = 0; i < count; i++) {
+        const im = new Image();
+        im.decoding = 'async';
+        im.onload = im.onerror = () => { if (++loaded === count) res(); if (i === 0) draw(0, true); };
+        im.src = `frames/${dir}/${pad(i)}.jpg`;
+        imgs[i] = im;
+      }
+    });
+    function size() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(canvas.clientWidth * dpr);
+      canvas.height = Math.round(canvas.clientHeight * dpr);
+      last = -1;
+    }
+    function draw(idx, force) {
+      idx = clamp(Math.round(idx), 0, count - 1);
+      // fall back to the nearest loaded frame
+      let im = imgs[idx], k = idx;
+      while (k > 0 && !(im && im.complete && im.naturalWidth)) im = imgs[--k];
+      if (!(im && im.complete && im.naturalWidth)) return;
+      if (k === last && !force) return;
+      last = k;
+      const cw = canvas.width, ch = canvas.height;
+      const s = Math.max(cw / im.naturalWidth, ch / im.naturalHeight);
+      const w = im.naturalWidth * s, h = im.naturalHeight * s;
+      ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h);
+    }
+    return { size, draw, ready, count };
+  }
+
+  const env = makeSeq($('envCanvas'), 'envelope', ENV_FRAMES);
+  const hanbok = makeSeq($('hanbokCanvas'), 'hanbok', HANBOK_FRAMES);
+
+  // ---------- Per-character text reveal ----------
+  function splitChars(el) {
+    const text = el.textContent.trim();
+    el.textContent = '';
+    el.setAttribute('aria-label', text.replace(/\|/g, ' '));
+    const spans = [];
+    // "|" marks a line break; words stay together so lines match the video
+    text.split(/(\||\s+)/).forEach(part => {
+      if (!part) return;
+      if (part === '|') { el.appendChild(document.createElement('br')); return; }
+      if (/^\s+$/.test(part)) { el.appendChild(document.createTextNode(' ')); return; }
+      const w = document.createElement('span');
+      w.style.display = 'inline-block'; w.style.whiteSpace = 'nowrap';
+      w.setAttribute('aria-hidden', 'true');
+      for (const c of part) {
+        const s = document.createElement('span');
+        s.className = 'ch'; s.textContent = c;
+        w.appendChild(s); spans.push(s);
+      }
+      el.appendChild(w);
+    });
+    return spans;
+  }
+  function reveal(spans, t) {
+    const n = spans.length, win = 0.18;
+    for (let i = 0; i < n; i++) {
+      const start = (i / n) * (1 - win);
+      const k = clamp((t - start) / win);
+      const s = spans[i].style;
+      s.opacity = k;
+      s.filter = k > 0 && k < 1 ? `blur(${(1 - k) * 5}px)` : 'none';
+      s.transform = `translateX(${(1 - k) * 6}px)`;
+    }
+  }
+
+  const joinChars = splitChars($('join'));
+  const headChars = splitChars($('headline'));
+  const labelChars = splitChars($('locLabel'));
+  const addrChars = splitChars($('addr'));
+  const tagChars = splitChars($('tagline'));
+
+  const digits = [...document.querySelectorAll('.date .d')];
+  const seps = [...document.querySelectorAll('.date .sep')];
+
+  // ---------- Layout ----------
+  let vh = window.innerHeight, lastW = window.innerWidth;
+  function layout(force) {
+    // Ignore mobile URL-bar height jitter; only re-measure on width change.
+    if (!force && window.innerWidth === lastW) return;
+    lastW = window.innerWidth; vh = window.innerHeight;
+    $('track').style.height = (T.end * vh + vh) + 'px';
+    env.size(); hanbok.size();
+    cur = target = window.scrollY / vh;
+    render(cur, true);
+  }
+
+  // ---------- Render ----------
+  const S = id => $(id).style;
+  function render(p, force) {
+    $('progress').style.transform = `scaleX(${clamp(p / T.end)})`;
+
+    // Scene 1 — envelope
+    const e = ease(seg(p, ...T.envScrub));
+    env.draw(e * (ENV_FRAMES - 1), force);
+    S('hint').opacity = 1 - seg(p, 0.02, 0.3);
+    S('envLayer').transform = `scale(${1 + seg(p, 3.2, 4.0) * 0.06})`;
+
+    // Scene 2 — purple circle wipe
+    const wipe = ease(seg(p, ...T.toPurple));
+    S('purpleLayer').clipPath = `circle(${wipe * 75}% at 50% 46%)`;
+    S('purpleLayer').visibility = wipe > 0 ? 'visible' : 'hidden';
+
+    reveal(joinChars, seg(p, ...T.join));
+    const jo = seg(p, ...T.joinOut);
+    S('join').opacity = 1 - jo;
+    S('join').transform = `translateY(${-jo * 30}px)`;
+
+    // Scene 3 — digits slide in spread out, then converge into 11.11 / 11:11
+    const din = easeOut(seg(p, ...T.digitsIn));
+    const cv = ease(seg(p, ...T.converge));
+    S('dateWrap').visibility = din > 0 ? 'visible' : 'hidden';
+    digits.forEach((d, i) => {
+      const col = i % 4;                         // 0,1 | 2,3
+      const row = Math.floor(i / 4);
+      const spread = [-0.75, -0.3, 0.3, 0.75][col]; // em offset when apart
+      const dx = spread * (1 - cv);
+      const dy = (row === 0 ? -1 : 1) * (1 - din) * 0.5;
+      d.style.transform = `translate(${dx}em, ${dy}em)`;
+      d.style.opacity = clamp(din * 1.4 - (col % 2) * 0.25 * (1 - din));
+    });
+    seps.forEach(s => s.style.opacity = seg(cv, 0.55, 1));
+
+    // Scene 4 — hanbok fades in from a white wash, then scrubs
+    const hin = seg(p, ...T.toHanbok);
+    S('hanbokLayer').opacity = hin;
+    S('wash').opacity = 1 - seg(p, T.toHanbok[0] + 0.1, T.hanbok[0] + 0.35);
+    hanbok.draw(seg(p, ...T.hanbok) * (HANBOK_FRAMES - 1), force);
+
+    // Scene 5 — clinic + location
+    S('beigeLayer').opacity = seg(p, ...T.toBeige);
+    reveal(headChars, seg(p, ...T.headline));
+    reveal(labelChars, seg(p, ...T.label));
+    reveal(addrChars, seg(p, ...T.addr));
+    const co = seg(p, ...T.clinicOut);
+    S('clinic').opacity = 1 - co;
+    S('clinic').transform = `translateY(calc(-50% - ${co * 24}px))`;
+
+    // Scene 6 — logo wipes in left to right, tagline types in
+    const ld = ease(seg(p, ...T.logoDraw));
+    S('logoLatin').clipPath = `inset(0 ${(1 - ld) * 100}% 35% 0)`;
+    S('logoLatin').filter = ld > 0 && ld < 1 ? `blur(${(1 - ld) * 3}px)` : 'none';
+    S('kr').opacity = seg(p, ...T.kr);
+    S('kr').transform = `translateY(${(1 - seg(p, ...T.kr)) * 8}px)`;
+    S('logoWrap').opacity = ld > 0 ? 1 : 0;
+    reveal(tagChars, seg(p, ...T.tagline));
+  }
+
+  // Smooth the scroll value so frame scrubbing feels like playback.
+  let target = 0, cur = 0, raf = 0;
+  function tick() {
+    cur += (target - cur) * 0.14;
+    if (Math.abs(target - cur) < 0.0005) cur = target;
+    render(cur);
+    raf = cur !== target ? requestAnimationFrame(tick) : 0;
+  }
+  function onScroll() {
+    target = window.scrollY / vh;
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', () => layout(false));
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  layout(true);
+  window.scrollTo(0, 0);
+  env.ready.then(() => { $('loader').classList.add('done'); render(cur, true); });
+  // Don't hold the page hostage on a slow connection.
+  setTimeout(() => $('loader').classList.add('done'), 2500);
+  document.fonts && document.fonts.ready.then(() => render(cur, true));
+})();
+</script>
+</body>
+</html>
