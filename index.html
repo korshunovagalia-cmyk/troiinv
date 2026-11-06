@@ -180,7 +180,7 @@
 
 <script>
 (() => {
-  const ENV_FRAMES = 70, HANBOK_FRAMES = 32;
+  const ENV_FRAMES = 70, HANBOK_FRAMES = 65;
   const pad = n => String(n).padStart(3, '0');
   const $ = id => document.getElementById(id);
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -246,7 +246,7 @@
       const w = im.naturalWidth * s, h = im.naturalHeight * s;
       ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h);
     }
-    // Draw a fractional frame by cross-fading two neighbours (smooth 15fps playback)
+    // Draw a fractional frame by cross-fading two neighbours (smooth playback)
     function drawBlend(f) {
       const i = clamp(Math.floor(f), 0, count - 1), j = Math.min(i + 1, count - 1);
       const a = imgs[i], b = imgs[j];
@@ -391,7 +391,7 @@
   }
 
   // ---------- Hanbok clip: plays by time, not by scroll ----------
-  const HANBOK_FPS = 15;
+  const HANBOK_FPS = 30;
   let hbStart = 0, hbRaf = 0, hbDone = false;
   function hbTick(now) {
     if (!hbStart) hbStart = now;
