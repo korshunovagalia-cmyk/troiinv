@@ -197,7 +197,7 @@
     digitsIn: [2.95, 3.2],
     converge: [3.25, 3.75],
     toHanbok: [3.95, 4.2],
-    hanbok:   [4.1, 5.2],
+    hanbok:   [4.1, 5.2],   // scene stays on screen here; clip plays on its own
     toBeige:  [5.35, 5.6],
     headline: [5.6, 5.9],
     label:    [5.95, 6.1],
@@ -246,9 +246,26 @@
       const w = im.naturalWidth * s, h = im.naturalHeight * s;
       ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h);
     }
+    // Draw a fractional frame by cross-fading two neighbours (smooth 15fps playback)
+    function drawBlend(f) {
+      const i = clamp(Math.floor(f), 0, count - 1), j = Math.min(i + 1, count - 1);
+      const a = imgs[i], b = imgs[j];
+      if (!(a && a.complete && a.naturalWidth)) return draw(i, true);
+      draw(i, true);
+      const frac = f - i;
+      if (frac > 0.01 && j !== i && b && b.complete && b.naturalWidth) {
+        const cw = canvas.width, ch = canvas.height;
+        const s = Math.max(cw / b.naturalWidth, ch / b.naturalHeight);
+        const w = b.naturalWidth * s, h = b.naturalHeight * s;
+        ctx.globalAlpha = frac;
+        ctx.drawImage(b, (cw - w) / 2, (ch - h) / 2, w, h);
+        ctx.globalAlpha = 1;
+      }
+      last = -1;
+    }
     // Re-measure on any size change (e.g. mobile address bar showing/hiding)
     if ('ResizeObserver' in window) new ResizeObserver(size).observe(canvas);
-    return { size, draw, ready, count };
+    return { size, draw, drawBlend, ready, count };
   }
 
   const env = makeSeq($('envCanvas'), 'envelope', ENV_FRAMES);
@@ -350,7 +367,9 @@
     const hin = seg(p, ...T.toHanbok);
     S('hanbokLayer').opacity = hin;
     S('wash').opacity = 1 - seg(p, T.toHanbok[0] + 0.1, T.hanbok[0] + 0.35);
-    hanbok.draw(seg(p, ...T.hanbok) * (HANBOK_FRAMES - 1), force);
+    // Play the clip once the scene is in view; rewind if the user scrolls back above it
+    if (p >= T.toHanbok[0] + 0.15) playHanbok();
+    else if (p < T.toHanbok[0]) resetHanbok();
 
     // Scene 5 — clinic + location
     S('beigeLayer').opacity = seg(p, ...T.toBeige);
@@ -369,6 +388,27 @@
     S('kr').transform = `translateY(${(1 - seg(p, ...T.kr)) * 8}px)`;
     S('logoWrap').opacity = ld > 0 ? 1 : 0;
     reveal(tagChars, seg(p, ...T.tagline));
+  }
+
+  // ---------- Hanbok clip: plays by time, not by scroll ----------
+  const HANBOK_FPS = 15;
+  let hbStart = 0, hbRaf = 0, hbDone = false;
+  function hbTick(now) {
+    if (!hbStart) hbStart = now;
+    const f = (now - hbStart) / 1000 * HANBOK_FPS;
+    hanbok.drawBlend(Math.min(f, HANBOK_FRAMES - 1));
+    if (f < HANBOK_FRAMES - 1) hbRaf = requestAnimationFrame(hbTick);
+    else { hbRaf = 0; hbDone = true; }   // hold on the last frame
+  }
+  function playHanbok() {
+    if (hbRaf || hbDone) return;
+    hbStart = 0; hbRaf = requestAnimationFrame(hbTick);
+  }
+  function resetHanbok() {
+    if (!hbRaf && !hbDone) return;
+    if (hbRaf) cancelAnimationFrame(hbRaf);
+    hbRaf = 0; hbDone = false; hbStart = 0;
+    hanbok.draw(0, true);
   }
 
   // Smooth the scroll value so frame scrubbing feels like playback.
