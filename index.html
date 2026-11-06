@@ -190,23 +190,23 @@
 
   // Timeline in "screens" (1 = one viewport height of scrolling).
   const T = {
-    envScrub: [0.05, 3.2],
-    toPurple: [3.45, 4.0],
-    join:     [4.1, 5.6],
-    joinOut:  [6.0, 6.35],
-    digitsIn: [6.35, 6.8],
-    converge: [6.9, 7.8],
-    toHanbok: [8.3, 8.75],
-    hanbok:   [8.6, 10.9],
-    toBeige:  [11.3, 11.65],
-    headline: [11.7, 12.2],
-    label:    [12.35, 12.6],
-    addr:     [12.6, 13.8],
-    clinicOut:[14.3, 14.65],
-    logoDraw: [14.65, 15.6],
-    kr:       [15.4, 15.75],
-    tagline:  [15.8, 16.6],
-    end:      17.2
+    envScrub: [0.02, 1.4],
+    toPurple: [1.5, 1.85],
+    join:     [1.9, 2.6],
+    joinOut:  [2.75, 2.95],
+    digitsIn: [2.95, 3.2],
+    converge: [3.25, 3.75],
+    toHanbok: [3.95, 4.2],
+    hanbok:   [4.1, 5.2],
+    toBeige:  [5.35, 5.6],
+    headline: [5.6, 5.9],
+    label:    [5.95, 6.1],
+    addr:     [6.1, 6.6],
+    clinicOut:[6.85, 7.05],
+    logoDraw: [7.05, 7.55],
+    kr:       [7.45, 7.7],
+    tagline:  [7.75, 8.15],
+    end:      8.4
   };
 
   // ---------- Image sequences ----------
@@ -318,8 +318,8 @@
     // Scene 1 — envelope
     const e = ease(seg(p, ...T.envScrub));
     env.draw(e * (ENV_FRAMES - 1), force);
-    S('hint').opacity = 1 - seg(p, 0.02, 0.3);
-    S('envLayer').transform = `scale(${1 + seg(p, 3.2, 4.0) * 0.06})`;
+    S('hint').opacity = 1 - seg(p, 0.02, 0.15);
+    S('envLayer').transform = `scale(${1 + seg(p, T.envScrub[1], T.toPurple[1]) * 0.06})`;
 
     // Scene 2 — purple circle wipe
     const wipe = ease(seg(p, ...T.toPurple));
