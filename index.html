@@ -80,8 +80,8 @@
   .date .sep { display: inline-block; width: .3em; text-align: center; opacity: 0; }
 
   /* --- Scene 4: hanbok --- */
-  .hanbok { opacity: 0; background: #F4EFE6; }
-  .wash { position: absolute; inset: 0; background: #fbf8f3; pointer-events: none; }
+  .hanbok { opacity: 0; background: #5B4064; }
+  .wash { position: absolute; inset: 0; background: var(--plum); pointer-events: none; }
 
   /* --- Scene 5/6: beige --- */
   .beige { background: var(--beige); opacity: 0; }
@@ -163,7 +163,7 @@
       <div class="clinic" id="clinic">
         <h1 id="headline">Authentic Korean|Skincare Clinic</h1>
         <p class="label" id="locLabel">Location:</p>
-        <p class="addr" id="addr">TROI Skin Clinic, Retail 1,|Azizi Fawad, Al Jaddaf,|Dubai</p>
+        <p class="addr" id="addr">TROI Skin Clinic, Retail 1|Azizi Fawad, Al Jaddaf,|Dubai</p>
       </div>
       <div class="logo-wrap" id="logoWrap">
         <div class="logo" role="img" aria-label="TROI 트로이">
@@ -180,7 +180,7 @@
 
 <script>
 (() => {
-  const ENV_FRAMES = 70, HANBOK_FRAMES = 65;
+  const ENV_FRAMES = 70, HANBOK_FRAMES = 73;
   const pad = n => String(n).padStart(3, '0');
   const $ = id => document.getElementById(id);
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
